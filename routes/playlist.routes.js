@@ -8,6 +8,19 @@ router.get('/', async (req, res) => {
   res.json(playlists);
 });
 
+// GET playlist by ID with songs populated
+router.get('/:id', async (req, res) => {
+    try {
+      const playlist = await Playlist.findById(req.params.id).populate('songs');
+      if (!playlist) {
+        return res.status(404).json({ message: 'Playlist not found' });
+      }
+      res.json(playlist);
+    } catch (err) {
+      res.status(500).json({ message: 'Error fetching playlist' });
+    }
+  });
+
 // POST create new playlist
 router.post('/', async (req, res) => {
   try {
@@ -60,6 +73,33 @@ router.patch('/:id', async (req, res) => {
       res.status(500).json({ message: "Erreur lors de l'ajout de chansons" });
     }
   });
+
+  // PATCH /api/playlists/remove/:id/
+  router.patch('/remove/:id', async (req, res) => {
+    try {
+      const playlistId = req.params.id;
+      const { songIds } = req.body;
+  
+      if (!Array.isArray(songIds)) {
+        return res.status(400).json({ message: "songIds must be an array" });
+      }
+  
+      const updatedPlaylist = await Playlist.findByIdAndUpdate(
+        playlistId,
+        { $pull: { songs: { $in: songIds } } },
+        { new: true }
+      ).populate('songs');
+  
+      if (!updatedPlaylist) {
+        return res.status(404).json({ message: "Playlist not found" });
+      }
+  
+      res.status(200).json(updatedPlaylist);
+    } catch (err) {
+      res.status(500).json({ message: "Erreur lors de la suppression de chansons" });
+    }
+  });
+  
 
 
 
