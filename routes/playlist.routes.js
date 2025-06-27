@@ -1,0 +1,66 @@
+const express = require('express');
+const router = express.Router();
+const Playlist = require('../models/Playlist');
+
+// GET all playlists with song data populated
+router.get('/', async (req, res) => {
+  const playlists = await Playlist.find().populate('songs');
+  res.json(playlists);
+});
+
+// POST create new playlist
+router.post('/', async (req, res) => {
+  try {
+    const playlist = new Playlist(req.body);
+    await playlist.save();
+    res.status(201).json(playlist);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Delete a playlist by id
+router.delete('/:id', async (req, res) => {
+    try {
+      const playlistId = req.params.id;
+      const deletedPlaylist = await Playlist.findByIdAndDelete(playlistId);
+  
+      if (!deletedPlaylist) {
+        return res.status(404).json({ message: 'Playlist not found' });
+      }
+  
+      res.status(200).json({ message: 'Playlist deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting playlist' });
+    }
+  });
+
+  // PATCH : Ajouter des chansons à une playlist
+router.patch('/:id', async (req, res) => {
+    try {
+      const playlistId = req.params.id;
+      const { songIds } = req.body; // tableau d’ObjectId de chansons à ajouter
+  
+      if (!Array.isArray(songIds)) {
+        return res.status(400).json({ message: "songIds must be an array" });
+      }
+  
+      const updatedPlaylist = await Playlist.findByIdAndUpdate(
+        playlistId,
+        { $addToSet: { songs: { $each: songIds } } }, // évite les doublons
+        { new: true }
+      ).populate('songs');
+  
+      if (!updatedPlaylist) {
+        return res.status(404).json({ message: "Playlist not found" });
+      }
+  
+      res.status(200).json(updatedPlaylist);
+    } catch (err) {
+      res.status(500).json({ message: "Erreur lors de l'ajout de chansons" });
+    }
+  });
+
+
+
+module.exports = router;
