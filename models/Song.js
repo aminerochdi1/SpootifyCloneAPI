@@ -8,5 +8,7 @@ const songSchema = new mongoose.Schema({
     coverImage: { type: String, default: null },
     liked: { type: Boolean, default: false }
   }, { timestamps: true });
+  
+  songSchema.index({ title: 'text' });
 
 module.exports = mongoose.model('Song', songSchema);

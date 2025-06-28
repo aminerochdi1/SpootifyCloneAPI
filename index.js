@@ -9,11 +9,11 @@ const playlistRoutes = require('./routes/playlist.routes');
 
 const env = require('./.env');
 
-// Connexion MongoDB
+// Connexion MongoDB  
 require('./config/db');
 
 const app = express();
-const PORT = 3000;
+// const PORT = 3000;
 
 // CORS
 app.use(cors());
@@ -36,7 +36,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Checking MONGODB connection status
 
 // PORT
-process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT,()=> {
    console.log(
     `Server Running on Local PORT : http://localhost:${PORT}`

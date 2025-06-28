@@ -4,8 +4,21 @@ const Song = require('../models/Song');
 
 // GET all songs
 router.get('/', async (req, res) => {
-  const songs = await Song.find();
-  res.json(songs);
+  try {
+    const { title } = req.query;
+    let songs;
+
+    if (title) {
+      songs = await Song.find({ $text: { $search: title } });
+    } else {
+      songs = await Song.find({});
+    }
+
+    res.json(songs);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des chansons :', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
 });
 
 // POST create new song
@@ -31,6 +44,7 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 });
+
 
 // DELETE a song by ID
 router.delete('/:id', async (req, res) => {
