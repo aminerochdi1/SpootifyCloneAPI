@@ -19,6 +19,19 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET song by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const song = await Song.findById(req.params.id);
+    if (!song) {
+      return res.status(404).json({ message: 'Chanson non trouvée' });
+    }
+    res.json(song);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+});
+
 // DELETE a song by ID
 router.delete('/:id', async (req, res) => {
   try {

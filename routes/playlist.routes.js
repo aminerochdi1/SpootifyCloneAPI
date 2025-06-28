@@ -1,6 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const Playlist = require('../models/Playlist');
+const multer = require('multer');
+
+// STORAGE
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + '-' + file.originalname);
+    }
+  });
+  const upload = multer({ storage });
+
+
 
 // GET all playlists with song data populated
 router.get('/', async (req, res) => {
@@ -22,15 +36,37 @@ router.get('/:id', async (req, res) => {
   });
 
 // POST create new playlist
-router.post('/', async (req, res) => {
-  try {
-    const playlist = new Playlist(req.body);
-    await playlist.save();
-    res.status(201).json(playlist);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+// router.post('/', async (req, res) => {
+//   try {
+//     const playlist = new Playlist(req.body);
+//     await playlist.save();
+//     res.status(201).json(playlist);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
+router.post('/', upload.single('image'), async (req, res) => {
+    try {
+      const { title, description } = req.body;
+      let imageUrl = '';
+  
+      if (req.file) {
+        // Enregistrer le chemin relatif vers l’image uploadée
+        imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      }
+  
+      const playlist = new Playlist({
+        title,
+        description,
+        image: imageUrl
+      });
+  
+      await playlist.save();
+      res.status(201).json(playlist);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
 
 // Delete a playlist by id
 router.delete('/:id', async (req, res) => {
